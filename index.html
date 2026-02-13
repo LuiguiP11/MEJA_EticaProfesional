@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Araña Interactivo - Ética Profesional</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        :root {
+            --jhiros-blue: #00BFFF; /* Azul eléctrico JHIROS */
+            --jhiros-pink: #FF69B4; /* Rosa neón JHIROS */
+            --jhiros-orange: #FFA500; /* Naranja vibrante JHIROS */
+            --jhiros-yellow: #FFFF00; /* Amarillo neón JHIROS */
+            --jhiros-green: #32CD32; /* Verde lima JHIROS */
+            --jhiros-lightblue: #87CEFA; /* Celeste suave JHIROS */
+
+            --primary-color: var(--jhiros-blue); /* Principal: Azul eléctrico */
+            --secondary-color: var(--jhiros-orange); /* Secundario: Naranja vibrante */
+            --accent-color: var(--jhiros-pink); /* Acento: Rosa neón */
+            --bg-color: #e0e6e9; /* Un gris claro un poco más profundo para el fondo */
+            --text-color: #2c3e50; /* Un gris azulado oscuro para el texto */
+            --card-bg: #ffffff; /* Blanco puro para las tarjetas */
+            --line-color: var(--jhiros-lightblue); /* Líneas en celeste suave */
+            --shadow-color: rgba(0, 0, 0, 0.25); /* Color de sombra más genérico */
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color) 0%, #d4e0e8 100%); /* Degradado sutil */
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .line {
+            position: absolute;
+            background-color: var(--line-color); /* Usamos el celeste suave de JHIROS */
+            height: 3px; /* Líneas un poco más gruesas */
+            width: 3px;
+            z-index: 1; /* Aseguramos que las líneas estén detrás de las tarjetas */
+            transform-origin: center;
+            opacity: 0.7; /* Ligeramente transparentes */
+        }
+        #line-pedagogia { width: 2px; height: 160px; top: calc(50% - 80px); left: 50%; transform: translateX(-50%); }
+        #line-psicologia { height: 2px; width: 225px; top: 50%; right: calc(50% - 112.5px); transform: translateY(-50%); }
+        #line-sociologia { width: 2px; height: 160px; bottom: calc(50% - 80px); left: 50%; transform: translateX(-50%); }
+        #line-derecho { height: 2px; width: 225px; top: 50%; left: calc(50% - 112.5px); transform: translateY(-50%); }
+        .map-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .map-center {
+            width: 200px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--jhiros-orange), var(--jhiros-blue)); /* Usamos naranja y azul de JHIROS */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px var(--shadow-color); /* Usamos la nueva variable de sombra */
+            z-index: 10;
+            font-size: 1.5em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .map-center:hover {
+            transform: scale(1.08); /* Un poco más de escala */
+            box-shadow: 0 18px 35px var(--shadow-color); /* Sombra aún más pronunciada al hover */
+        }
+        .discipline-node {
+            position: absolute;
+            width: 150px;
+            height: 80px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary-color); /* Usamos el primary-color JHIROS */
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px var(--shadow-color); /* Usamos la nueva variable de sombra */
+            z-index: 15;
+        }
+        .discipline-node:hover {
+            transform: scale(1.15); /* Escala un poco más grande */
+            box-shadow: 0 15px 30px var(--shadow-color); /* Sombra aún más pronunciada al hover */
+            z-index: 20;
+            border-color: var(--accent-color); /* Resalta con el color acento JHIROS */
+        }
+
+        #pedagogia { top: 100px; left: 50%; transform: translateX(-50%); }
+        #psicologia { top: 50%; right: 100px; transform: translateY(-50%); }
+        #sociologia { bottom: 100px; left: 50%; transform: translateX(-50%); }
+        #derecho { top: 50%; left: 100px; transform: translateY(-50%); }
+        #referencias { bottom: 50px; right: 50px; transform: none; } /* Nodo de referencias, movido a la esquina inferior derecha */
+
+
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            z-index: 100;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: all 0.4s ease;
+            line-height: 1.8;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.8em;
+        }
+        .modal-content h3 {
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--bg-color);
+            padding-bottom: 5px;
+            font-size: 1.3em;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            color: var(--primary-color); /* Color principal para los encabezados */
+            margin-top: 15px; /* Espacio superior */
+        }
+        .collapsible-header:hover {
+            background-color: rgba(0,0,0,0.05); /* Ligero hover effect */
+        }
+        .collapsible-header .arrow {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--primary-color); /* Color de la flecha */
+            transition: transform 0.3s ease;
+            margin-left: 10px;
+        }
+        .collapsible-header.active .arrow {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out; /* Transición para el desplegado */
+            padding-left: 10px; /* Indentación para el contenido */
+            border-left: 2px solid var(--line-color); /* Borde sutil */
+        }
+        .collapsible-content.active {
+            max-height: 500px; /* Ajusta este valor si el contenido es muy largo */
+            transition: max-height 0.5s ease-in;
+        }
+        .modal-content ul { padding-left: 20px; list-style-type: '✧ '; }
+        .modal-content p { text-align: justify; }
+
+        .main-header {
+            background-color: var(--card-bg); /* Fondo blanco como las tarjetas */
+            padding: 15px 30px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50; /* Por encima de las líneas y el mapa */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 3px solid var(--primary-color); /* Una línea debajo del header */
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px; /* Ancho máximo para centrar el contenido */
+        }
+        .main-header .logo {
+            height: 60px; /* Ajusta el tamaño de los logos */
+            object-fit: contain;
+        }
+        .header-text {
+            text-align: center;
+            margin: 0 20px;
+            flex-grow: 1;
+        }
+        .header-text h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        .header-text p {
+            margin: 2px 0;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .main-footer {
+            background-color: var(--card-bg);
+            padding: 10px 20px;
+            box-shadow: 0 -4px 15px var(--shadow-color);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            text-align: center;
+            color: var(--text-color);
+            font-size: 0.8em;
+            border-top: 3px solid var(--primary-color); /* Una línea encima del footer */
+        }
+        .main-footer p {
+            margin: 5px 0;
+        }
+
+        /* Ajustes para el body para que el header y footer no superpongan contenido */
+        body {
+            padding-top: 120px; /* Espacio para el header (ajustar si cambias el tamaño del header) */
+            padding-bottom: 80px; /* Espacio para el footer (ajustar si cambias el tamaño del footer) */
+        }
+
+        /* Media queries para responsividad */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                padding: 10px 15px;
+            }
+            .main-header .logo {
+                height: 40px; /* Logos más pequeños en móviles */
+                margin-bottom: 10px;
+            }
+            .header-text {
+                margin: 10px 0;
+            }
+            .header-text h1 {
+                font-size: 1.4em;
+            }
+            .header-text p {
+                font-size: 0.8em;
+            }
+            body {
+                padding-top: 180px; /* Ajuste para el header en móvil */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <img src="assets/img/USAC_Blanco.png" alt="Logo USAC" class="logo left-logo">
+            <div class="header-text">
+                <h1>Mapa Interdisciplinario</h1>
+                <p>Maestra Lucía Aguilar</p>
+                <p>MEJA4S2 Ética profesional, Sección A</p>
+            </div>
+            <img src="assets/img/Fahusac_Logo2.png" alt="Logo Fahusac" class="logo right-logo">
+        </div>
+    </header>
+    <div class="map-container">
+        <div class="map-center">Ética<br>Profesional</div>
+        <div class="line" id="line-pedagogia"></div>
+        <div class="line" id="line-psicologia"></div>
+        <div class="line" id="line-sociologia"></div>
+        <div class="line" id="line-derecho"></div>
+        <div class="discipline-node" id="pedagogia" data-target="modal-pedagogia">1. Pedagogía</div>
+        <div class="discipline-node" id="psicologia" data-target="modal-psicologia">2. Psicología</div>
+        <div class="discipline-node" id="sociologia" data-target="modal-sociologia">3. Sociología</div>
+        <div class="discipline-node" id="derecho" data-target="modal-derecho">4. Derecho</div>
+        <div class="discipline-node" id="referencias" data-target="modal-referencias">Referencias</div>
+    </div>
+
+    <!-- Modals for Content -->
+    <div id="modal-pedagogia" class="modal-overlay">
+        <div class="modal-content">
+            <h2>1. Pedagogía: El Arte Ético de Enseñar</h2>
+
+            <h3 class="collapsible-header">A. Interrogantes Éticas Fundamentales <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li>Al diseñar una experiencia de aprendizaje, ¿dónde comienza la responsabilidad del pedagogo? ¿Entre seguir al pie de la letra un currículo oficial o la adaptación a las necesidades e intereses vitales de los estudiantes adultos? (Punto Cunorte - Universidad de Guadalajara, 2025)</li>
+                    <li>¿Cuál es la delgada frontera ética entre guiar la formación de un estudiante e imponer una visión del mundo? ¿Cómo inspirar sin adoctrinar?</li>
+                    <li>¿Resulta éticamente defendible aplicar un mismo criterio de evaluación para todos, ignorando la diversidad de contextos socioeconómicos, culturales y emocionales que cada estudiante trae consigo?</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">B. Conceptos Éticos en Diálogo <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li><strong>Responsabilidad:</strong> Supera la mera transmisión de datos; implica asumir el impacto de la enseñanza en la vida, la autoestima y el proyecto de futuro del estudiante. Se forman personas, no archivos. (Gómez-Trigueros, 2022)</li>
+                    <li><strong>Respeto:</strong> Como principio activo, se centra en una valoración profunda de la autonomía, dignidad y riqueza de saberes que cada estudiante posee. Implica una escucha atenta y un diálogo genuino.</li>
+                    <li><strong>Justicia y Equidad:</strong> Es la brújula que guía la búsqueda constante y dar a cada estudiante las herramientas que necesita para su desarrollo. No es tratar a todos por igual, sino reconocer la desigualdad para ofrecer un apoyo diferenciado y potenciador. (Universidad de La Rioja, 2024)</li>
+                    <li><strong>Vocación:</strong> Se entiende no como un simple empleo, sino como un llamado al servicio y al compromiso con el desarrollo humano, exigiendo una conducta y reflexión intachables. (García Amilburu, s.f.)</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">C. Su reflejo en la Práctica Educativa <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <p>Este compromiso ético cobra vida en el quehacer diario, lo observamos, por ejemplo, en la decisión consciente de un docente de flexibilizar una actividad al percibirla irrelevante para la realidad de sus alumnos (un acto de <strong>respeto</strong> y <strong>responsabilidad</strong>). También se hace presente al diseñar múltiples vías de evaluación que permiten a un estudiante con dificultades expresivas demostrar su saber de otra forma (un ejercicio de <strong>justicia</strong>), o al dedicar un momento para escuchar, entendiendo que el bienestar emocional es indisociable del aprendizaje (la <strong>vocación</strong> en su forma más pura). (Senescyt, 2025)</p>
+            </div>
+        </div>
+    </div>
+    <div id="modal-psicologia" class="modal-overlay">
+        <div class="modal-content">
+            <h2>2. Psicología: La Ética del Cuidado y la Mente</h2>
+
+            <h3 class="collapsible-header">A. Interrogantes Éticas Fundamentales <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li>¿Cómo proteger éticamente la información de naturaleza personal y confidencial que un estudiante revela en la confianza del espacio educativo? (Universidad de La Rioja, 2025)</li>
+                    <li>Frente a indicios de un posible problema de salud mental, ¿cuál es la responsabilidad y el límite del educador? ¿Cómo diferenciar el apoyo del diagnóstico?</li>
+                    <li>¿Es éticamente lícito emplear técnicas de modificación conductual para promover ciertos resultados, incluso si se persigue el "bienestar" del estudiante?</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">B. Conceptos Éticos en Diálogo <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li><strong>Confidencialidad:</strong> Constituye la obligación sagrada de resguardar la privacidad del estudiante, estableciendo la confianza indispensable para un vínculo pedagógico auténtico y seguro. (Gallardo Martínez, Hurtado Domínguez & Ocampo Ponce, 2025)</li>
+                    <li><strong>Beneficencia y no maleficencia:</strong> Un doble principio que compele al educador a procurar siempre el mayor bien para el estudiante (beneficencia) y, a su vez, a evitar de forma activa cualquier acción que pueda causarle daño psicológico o emocional (no maleficencia).</li>
+                    <li><strong>Autonomía:</strong> Consiste en el respeto absoluto por el derecho del estudiante a gobernar su propio proceso de aprendizaje y a tomar sus propias decisiones vitales, libre de coerción o manipulación.</li>
+                    <li><strong>Integridad:</strong> Demanda actuar con honestidad, reconociendo con transparencia los límites de la propia competencia. La integridad exige a un educador, que no es terapeuta, saber direccionar a un profesional competente cuando la situación lo requiere. (García Amilburu, s.f.)</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">C. Su Reflejo en la Práctica Educativa <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <p>La ética psicológica se materializa cuando un tutor atiende el relato de un estudiante sin emitir juicios y garantiza su privacidad (<strong>confidencialidad</strong>), se manifiesta cuando un profesor, ante la ansiedad rígida de un alumno, ofrece alternativas en lugar de presión, sugiriendo el apoyo del consejero escolar (<strong>beneficencia</strong>), del mismo modo, cobra vida al fomentar la motivación intrínseca, permitiendo que los estudiantes elijan el enfoque de su proyecto final según sus pasiones (un claro gesto de respeto a la <strong>autonomía</strong>). (Universidad de La Rioja, 2024)</p>
+            </div>
+        </div>
+    </div>
+    <div id="modal-sociologia" class="modal-overlay">
+        <div class="modal-content">
+            <h2>3. Sociología: La Ética de la Justicia Social</h2>
+
+            <h3 class="collapsible-header">A. Interrogantes Éticas Fundamentales <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li>¿Posee el educador una responsabilidad ética inevitable de visibilizar y confrontar las desigualdades sociales (racismo, sexismo, clasismo) que se reproducen en el aula? (Universidad de La Rioja, 2024)</li>
+                    <li>¿De qué manera se puede garantizar que el currículo y los materiales didácticos no solo eviten perpetuar estereotipos, sino que representen con justicia la rica diversidad de la sociedad?</li>
+                    <li>¿Es éticamente sostenible que un sistema educativo privilegie una visión del mundo monocultural, silenciando las aportaciones de las culturas minoritarias?</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">B. Conceptos Éticos en Diálogo <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li><strong>Justicia Social:</strong> Actúa como el pilar fundamental, exigiendo del educador una conciencia profunda de las estructuras de poder y privilegio para transformar el aula en un motor de equidad, y no en un mero reproductor de la desigualdad estructural. (Senescyt, 2025)</li>
+                    <li><strong>Inclusión:</strong> Va más allá de la simple coexistencia; implica la valoración activa y la amplificación de todas las voces e identidades, creando un espacio donde cada estudiante se sienta perteneciente, visible y validado.</li>
+                    <li><strong>Conciencia Crítica:</strong> Se refiere al deber ético de cultivar, tanto en uno mismo como en los estudiantes, la capacidad de analizar la realidad social de forma crítica, de interrogar el status quo y de no normalizar la injusticia.</li>
+                    <li><strong>Solidaridad:</strong> Se basa en el reconocimiento de que el bienestar individual está intrínsecamente ligado al colectivo. En la práctica, se traduce en un apoyo activo hacia los estudiantes y las comunidades más vulnerables. (Punto Cunorte - Universidad de Guadalajara, 2025)</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">C. Su Reflejo en la Práctica Educativa <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <p>Un educador personifica la ética sociológica al diversificar sus fuentes y lecturas con autores de múltiples etnias y géneros (fomentando la <strong>inclusión</strong>), de igualmanera, la pone en práctica al organizar un debate informado sobre la desigualdad a partir de eventos actuales (cultivando la <strong>conciencia crítica</strong>), o al impulsar un proyecto que conecte el aprendizaje del aula con la resolución de un problema comunitario tangible (ejerciendo la <strong>solidaridad</strong> y la <strong>justicia social</strong>). (Gómez-Trigueros, 2022)</p>
+            </div>
+        </div>
+    </div>
+    <div id="modal-derecho" class="modal-overlay">
+        <div class="modal-content">
+            <h2>4. Derecho: El Marco Ético de Deberes y Garantías</h2>
+
+            <h3 class="collapsible-header">A. Interrogantes Éticas Fundamentales <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li>¿Cómo se equilibra el deber de proteger la seguridad colectiva con el derecho a la privacidad y al debido proceso de un estudiante en particular? (Universidad de La Rioja, 2025)</li>
+                    <li>Frente a las leyes de inclusión, ¿la responsabilidad de una institución culmina en el mero cumplimiento de la norma, o existe un deber ético superior de ir más allá para garantizar una inclusión real?</li>
+                    <li>Ante una política educativa que, siendo legal, resulta éticamente cuestionable, ¿cuál es el proceder correcto y responsable para un profesional de la educación? (Gallardo Martínez, Hurtado Domínguez & Ocampo Ponce, 2025)</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">B. Conceptos Éticos en Diálogo <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <ul>
+                    <li><strong>Legalidad vs. Moralidad:</strong> El Derecho ofrece el marco de lo legal, pero la Ética nos interpela sobre lo que es moralmente correcto, el educador debe aprender a navegar la rigidez constante entre lo que la ley permite y lo que la conciencia exige. (García Amilburu, s.f.)</li>
+                    <li><strong>Derechos Humanos:</strong> El derecho a la educación es un pilar, la ética profesional demanda que cada acto educativo se oriente a la plena garantía de este derecho, protegiendo incondicionalmente la dignidad de cada estudiante.</li>
+                    <li><strong>Debido Proceso:</strong> Es la garantía de que cualquier medida disciplinaria o académica se aplicará con justicia, transparencia y ofreciendo al estudiante la oportunidad de ser escuchado, es la formalización de la equidad.</li>
+                    <li><strong>Deber de Cuidado:</strong> Se refiere a la obligación, tanto legal como ética, de la institución y sus educadores de actuar con la prudencia de un buen padre de familia para proteger el bienestar y la seguridad de los estudiantes a su cargo.</li>
+                </ul>
+            </div>
+
+            <h3 class="collapsible-header">C. Su Reflejo en la Práctica Educativa <span class="arrow"></span></h3>
+            <div class="collapsible-content">
+                <p>La ética jurídica se hace tangible cuando una escuela establece un protocolo claro y equitativo para el manejo del acoso, protegiendo a la víctima sin vulnerar el debido proceso del acusado. Se observa que va más allá del mínimo legal, motivada por un compromiso real con los derechos de todos. También se manifiesta en la valiente postura de un claustro que debate y argumenta éticamente contra una regla de expulsión por bajo rendimiento, aunque sea legal, demostrando así la crucial distinción entre <strong>legalidad y moralidad</strong>. (Senescyt, 2025)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for References -->
+    <div id="modal-referencias" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Referencias</h2>
+            <ul>
+                <li>Gómez-Trigueros, I. M. (2022). El conocimiento ético profesional docente y su presencia en la inclusión de las tecnologías en el contexto educativo presente. *Edutec. Revista Electrónica de Tecnología Educativa*, (80), 1–17.</li>
+                <li>Gallardo Martínez, Y., Hurtado Domínguez, R., & Ocampo Ponce, M. (2025). *Consideraciones fundamentales para una ética profesional*. Eunsa.</li>
+                <li>García Amilburu, M. (s.f.). *Ética y deontología profesional para maestros y educadores*. Libros UNED.</li>
+                <li>Punto Cunorte - Universidad de Guadalajara. (2025). *Compromiso y responsabilidad social del docente*. Universidad de Guadalajara.</li>
+                <li>Senescyt. (2025). *Ética profesional docente*. Senescyt.</li>
+                <li>Universidad de La Rioja. (2024). *Ética profesional en la educación: La base para el desarrollo sostenible*. Dialnet.</li>
+                <li>Universidad de La Rioja. (2025). *ÉTICA DE LA INVESTIGACIÓN EDUCATIVA*. Dialnet.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.discipline-node').forEach(node => {
+            node.addEventListener('click', () => {
+                const modalId = node.getAttribute('data-target');
+                document.getElementById(modalId).classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Lógica para desplegables
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                header.classList.toggle('active');
+                const content = header.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        });
+    </script>
+    <footer class="main-footer">
+        <p>© 2025 Jhiro's Edu | Todos los derechos reservados</p>
+        <p>Lic. Luis Ygnacio Ponce Sierra</p>
+    </footer>
+
+</body>
+</html>
