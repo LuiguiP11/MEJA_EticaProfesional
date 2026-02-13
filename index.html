@@ -190,8 +190,15 @@
             max-height: 500px; /* Ajusta este valor si el contenido es muy largo */
             transition: max-height 0.5s ease-in;
         }
-        .modal-content ul { padding-left: 20px; list-style-type: '✧ '; }
+        .modal-content ul { padding-left: 20px; } /* Se elimina el list-style-type: '✧ ' */
         .modal-content p { text-align: justify; }
+
+        .references-list li {
+            text-indent: -2em; /* Mueve el texto a la izquierda */
+            padding-left: 2em; /* Crea el espacio para la sangría francesa */
+            margin-bottom: 0.5em; /* Espacio entre referencias */
+            list-style-type: none; /* Asegura que no haya ninguna viñeta */
+        }
 
         .main-header {
             background-color: var(--card-bg); /* Fondo blanco como las tarjetas */
@@ -432,14 +439,14 @@
     <div id="modal-referencias" class="modal-overlay">
         <div class="modal-content">
             <h2>Referencias</h2>
-            <ul>
-                <li>Gómez-Trigueros, I. M. (2022). El conocimiento ético profesional docente y su presencia en la inclusión de las tecnologías en el contexto educativo presente. *Edutec. Revista Electrónica de Tecnología Educativa*, (80), 1–17.</li>
-                <li>Gallardo Martínez, Y., Hurtado Domínguez, R., & Ocampo Ponce, M. (2025). *Consideraciones fundamentales para una ética profesional*. Eunsa.</li>
-                <li>García Amilburu, M. (s.f.). *Ética y deontología profesional para maestros y educadores*. Libros UNED.</li>
-                <li>Punto Cunorte - Universidad de Guadalajara. (2025). *Compromiso y responsabilidad social del docente*. Universidad de Guadalajara.</li>
-                <li>Senescyt. (2025). *Ética profesional docente*. Senescyt.</li>
-                <li>Universidad de La Rioja. (2024). *Ética profesional en la educación: La base para el desarrollo sostenible*. Dialnet.</li>
-                <li>Universidad de La Rioja. (2025). *ÉTICA DE LA INVESTIGACIÓN EDUCATIVA*. Dialnet.</li>
+            <ul class="references-list">
+                <li>García Amilburu, M. (s.f.). <em>Ética y deontología profesional para maestros y educadores</em>. Libros UNED.</li>
+                <li>Gallardo Martínez, Y., Hurtado Domínguez, R., & Ocampo Ponce, M. (2025). <em>Consideraciones fundamentales para una ética profesional</em>. Eunsa.</li>
+                <li>Gómez-Trigueros, I. M. (2022). El conocimiento ético profesional docente y su presencia en la inclusión de las tecnologías en el contexto educativo presente. <em>Edutec. Revista Electrónica de Tecnología Educativa</em>, (80), 1–17.</li>
+                <li>Punto Cunorte - Universidad de Guadalajara. (2025). <em>Compromiso y responsabilidad social del docente</em>. Universidad de Guadalajara.</li>
+                <li>Senescyt. (2025). <em>Ética profesional docente</em>. Senescyt.</li>
+                <li>Universidad de La Rioja. (2024). <em>Ética profesional en la educación: La base para el desarrollo sostenible</em>. Dialnet.</li>
+                <li>Universidad de La Rioja. (2025). <em>Ética de la investigación educativa</em>. Dialnet.</li>
             </ul>
         </div>
     </div>
